@@ -39,11 +39,23 @@ class Lasso:
 
         return coef_k
 
+    def objective(self, X, y, coef, intercept, alpha):
+        n, p = X.shape
+        total = 0
+
+        y_predict = np.dot(X, coef) + intercept
+        total += \
+            1/(2.0*n) * np.linalg.norm(y-y_predict, ord=2) ** 2
+        total += alpha * np.linalg.norm(coef, ord=1)
+
+        return total
+
     def fit(self, X, y):
         if self._copy_X:
             X = X.copy()
         if self._normalize:
             X = self._scaler.fit_transform(X)
+        self._objectives = []
 
         # initialize data
         num_samples, num_features = X.shape
@@ -52,7 +64,7 @@ class Lasso:
         intercept = 0
         if self._fit_intercept:
             tmp = y - np.dot(X, coef)
-            intercept = np.dot(tmp, tmp) / (1.0 * num_samples)
+            intercept = np.sum(tmp) / (1.0 * num_samples)
         num_iters = 0
         for iter in range(self._max_iter):
             num_iters = num_iters + 1
@@ -63,12 +75,14 @@ class Lasso:
                                                 intercept, self._alpha)
                 if self._fit_intercept:
                     tmp = y - np.dot(X, coef)
-                    intercept = np.dot(tmp, tmp) / (1.0 * num_samples)
+                    intercept = np.sum(tmp) / (1.0 * num_samples)
 
                 # check condition of convergence
                 coef_updates = np.abs(coef - old_coef)
                 if np.amax(coef_updates) < self._tol:
                     break
+            self._objectives.append(self.objective(X, y, coef,
+                                                   intercept, self._alpha))
 
         self._coef = coef
         self._intercept = intercept
@@ -102,6 +116,10 @@ class Lasso:
     @property
     def n_iter_(self):
         return self._num_iters
+
+    @property
+    def objectives_(self):
+        return self._objectives
 
     def __str__(self):
         return ('Lasso(alpha={}, copy_X={}, '
