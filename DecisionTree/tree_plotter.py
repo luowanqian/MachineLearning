@@ -5,7 +5,14 @@ Reference:
     2. http://whatbeg.com/2016/04/23/matplotlib-desiciontree.html
 """
 
+import matplotlib.font_manager as font_manager
+import os
 import matplotlib.pyplot as plt
+
+
+# Chinese font setting
+font_path = os.path.abspath('../resources/font/msyh.ttf')
+prop = font_manager.FontProperties(fname=font_path)
 
 gAxis = None
 gDecison_node = dict(boxstyle='sawtooth', fc='0.8')
@@ -60,7 +67,8 @@ def plot_node(node_text, center_point, parent_point, node_type):
                    xytext=center_point,
                    textcoords='axes fraction',
                    va='center', ha='center',
-                   bbox=node_type, arrowprops=gArrow_args)
+                   bbox=node_type, arrowprops=gArrow_args,
+                   fontproperties=prop)
 
 
 def plot_mid_text(current_point, parent_point, text_str):
@@ -71,7 +79,7 @@ def plot_mid_text(current_point, parent_point, text_str):
 
     x_mid = (parent_point[0] - current_point[0])/2.0 + current_point[0]
     y_mid = (parent_point[1] - current_point[1])/2.0 + current_point[1]
-    gAxis.text(x_mid, y_mid, text_str)
+    gAxis.text(x_mid, y_mid, text_str, fontproperties=prop)
 
 
 def plot_tree(tree, parent_point, node_text):

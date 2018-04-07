@@ -2,6 +2,9 @@ import numpy as np
 
 
 def calculate_entropy(data, target):
+    """
+    Calculate the Shannon entropy of a dataset
+    """
     num_entries = data.shape[0]
     label_counts = {}
     for i in range(num_entries):
@@ -20,6 +23,9 @@ def calculate_entropy(data, target):
 
 
 def split_dataset(data, target, axis, value):
+    """
+    Split data on a given feature
+    """
     select_idx = data[:, axis] == value
     select_target = target[select_idx]
     select_data = data[select_idx]
@@ -31,6 +37,9 @@ def split_dataset(data, target, axis, value):
 
 
 def choose_best_feature(data, target):
+    """
+    Choose the best feature to split on
+    """
     num_data, num_features = data.shape
     if num_features == 1:
         return 0
@@ -62,15 +71,16 @@ def majority_class(target):
     return class_list[sort_idx[-1]]
 
 
-def create_decision_tree(data, target, feature_labels):
+def create_decision_tree(data, target, feature_labels,
+                         feature_mappings, class_mappings):
     # stop when all classes are equal
     class_list = np.unique(target)
     if len(class_list) == 1:
-        return class_list[0]
+        return class_mappings[class_list[0]]
 
     # when no more features, return majority
     if data.shape[0] == 0:
-        return majority_class(target)
+        return class_mappings[majority_class(target)]
 
     best_feature = choose_best_feature(data, target)
     best_feature_label = feature_labels[best_feature]
@@ -83,8 +93,9 @@ def create_decision_tree(data, target, feature_labels):
         subset_feature_labels = feature_labels[:]
         subset_data, subset_target = \
             split_dataset(data, target, best_feature, value)
-        dt[best_feature_label][value] = \
+        dt[best_feature_label][feature_mappings[best_feature_label][value]] = \
             create_decision_tree(subset_data, subset_target,
-                                 subset_feature_labels)
+                                 subset_feature_labels,
+                                 feature_mappings, class_mappings)
 
     return dt
